@@ -72,3 +72,8 @@ group :test do
 end
 
 gem 'telegram-bot-ruby'
+
+gem 'pry'
+gem 'pry-byebug'
+
+gem 'launchy'

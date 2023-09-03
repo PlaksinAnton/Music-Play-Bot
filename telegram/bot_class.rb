@@ -36,8 +36,10 @@ class MusBot
   	url = message_text[/(https:\/\/(?:www\.)?youtu\.?be(?:\.com)?.*?)(?:\s|$)/, 1]
   	return error_message(id) unless url
 
-    track_name = get_track_name(get_html(url))
-    track = Track.find_by(url: url) || Track.create(name: track_name, url: url)
+  	track_hash = { url: url }
+  	binding.pry
+    track_hash[:name] = get_track_name(get_html(track_hash))
+    track = Track.find_by(url: track_hash[:url]) || Track.create(track_hash)
 
     play_or_queue_message(id, track)
   end
@@ -67,9 +69,9 @@ class MusBot
     end
   end
 
-	def get_html(url)
+	def get_html(track_hash)
   	begin
-    	response = Net::HTTP.get_response(URI(url))
+    	response = Net::HTTP.get_response(URI(track_hash[:url]))
   	rescue => e
   	  return e.to_s
   	end
@@ -78,7 +80,8 @@ class MusBot
   	when Net::HTTPSuccess then
   	  response.body
   	when Net::HTTPRedirection then
-  	  get_html(response['location'])
+  		track_hash[:url] = response['location']
+  	  get_html(track_hash)
   	else
    		'Not 2XX and not 3XX response :('
   	end

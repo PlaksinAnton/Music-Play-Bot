@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_09_03_101505) do
+ActiveRecord::Schema[7.0].define(version: 2023_09_04_171922) do
   create_table "played_tracks", force: :cascade do |t|
     t.integer "track_id", null: false
     t.integer "user_id", null: false
@@ -39,9 +39,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_03_101505) do
   create_table "users", force: :cascade do |t|
     t.string "name"
     t.integer "telegram_id"
-    t.string "step"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "history_id"
+    t.integer "queue_id"
   end
 
   add_foreign_key "played_tracks", "tracks"

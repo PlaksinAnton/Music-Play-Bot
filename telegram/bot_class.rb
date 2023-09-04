@@ -39,11 +39,7 @@ class MusBot
   def answer_to_user(message)
   	return handle_start(@id,  @user.name) if message.text	== '/start'
 
-  	if message.text	== '/history'
-  		bot_message = send_history_message(@id)
-  		@user.update(step: bot_message.dig('result', 'message_id'))
-  		return
-  	end
+  	return send_history_message(@id, @user) if message.text	== '/history'
 
   	url = message.text[/(https:\/\/(?:www\.)?youtu\.?be(?:\.com)?.*?)(?:\s|$)/, 1]
   	return error_message(@id) unless url
@@ -80,9 +76,10 @@ class MusBot
   	true
   end
 
-  def send_history_message(id)
+  def send_history_message(id, user)
   	history_markup = create_history_markup
-  	@bot.api.send_message(chat_id: id, text: 'Recently played tracks:', reply_markup: history_markup)
+  	bot_message = @bot.api.send_message(chat_id: id, text: 'Recently played tracks:', reply_markup: history_markup)
+  	user.update(history_id: bot_message.dig('result', 'message_id'))
   end
 
   def update_history_message(id, message_id)
@@ -107,7 +104,7 @@ class MusBot
     	@bot.api.send_message(chat_id: @id, text: 'запусптил видос')
       # Launchy.open(Track.find(json[:play]).url)
       PlayedTrack.create(track_id: json[:track_id], user_id: @user.id)
-      update_history_message(@id, @user.step)
+      update_history_message(@id, @user.history_id)
     when 'queue'
       @bot.api.send_message(chat_id: @id, text: 'You send queue')
     end

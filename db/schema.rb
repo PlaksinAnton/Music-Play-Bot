@@ -10,7 +10,25 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_08_28_100545) do
+ActiveRecord::Schema[7.0].define(version: 2023_09_03_101505) do
+  create_table "played_tracks", force: :cascade do |t|
+    t.integer "track_id", null: false
+    t.integer "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["track_id"], name: "index_played_tracks_on_track_id"
+    t.index ["user_id"], name: "index_played_tracks_on_user_id"
+  end
+
+  create_table "queued_tracks", force: :cascade do |t|
+    t.integer "track_id", null: false
+    t.integer "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["track_id"], name: "index_queued_tracks_on_track_id"
+    t.index ["user_id"], name: "index_queued_tracks_on_user_id"
+  end
+
   create_table "tracks", force: :cascade do |t|
     t.string "name"
     t.string "url"
@@ -26,4 +44,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_28_100545) do
     t.datetime "updated_at", null: false
   end
 
+  add_foreign_key "played_tracks", "tracks"
+  add_foreign_key "played_tracks", "users"
+  add_foreign_key "queued_tracks", "tracks"
+  add_foreign_key "queued_tracks", "users"
 end

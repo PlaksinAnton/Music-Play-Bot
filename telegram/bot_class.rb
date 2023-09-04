@@ -11,37 +11,58 @@ class MusBot
 		@bot = bot
 	end
 
-	def do_the_bot_thing(message)
-		id = message.from.id
+	def init_values(message)
+		@id = message.from.id
+		@user = User.find_by(telegram_id: @id) || User.create(name: message.from.username, telegram_id: id, step: 0)
+	end
 
-		#binding.pry
+	def do_the_bot_thing(message)
+		# binding.pry
+		init_values(message)
+
     case message
     when Telegram::Bot::Types::Message
 
-      answer_to_user(id, message.text)
+      answer_to_user(message)
 
     when Telegram::Bot::Types::CallbackQuery
 
-      react_to_button(id, message.data)
+      react_to_button(message)
     
     end
 	end
 
-  def init_user(id, username) # message.from.username
+  def init_user(id, username)
   	User.find_by(telegram_id: id) || User.create(name: username, telegram_id: id, step: 0)
-    # bot.api.send_message(chat_id: id, text: 'Now you can send me youtube videos to play it on TV.')
   end
 
-  def answer_to_user(id, message_text)
-  	url = message_text[/(https:\/\/(?:www\.)?youtu\.?be(?:\.com)?.*?)(?:\s|$)/, 1]
-  	return error_message(id) unless url
+  def answer_to_user(message)
+  	return handle_start(@id,  @user.name) if message.text	== '/start'
+
+  	if message.text	== '/history'
+  		bot_message = send_history_message(@id)
+  		@user.update(step: bot_message.dig('result', 'message_id'))
+  		return
+  	end
+
+  	url = message.text[/(https:\/\/(?:www\.)?youtu\.?be(?:\.com)?.*?)(?:\s|$)/, 1]
+  	return error_message(@id) unless url
 
   	track_hash = { url: url }
-  	binding.pry
     track_hash[:name] = get_track_name(get_html(track_hash))
     track = Track.find_by(url: track_hash[:url]) || Track.create(track_hash)
 
-    play_or_queue_message(id, track)
+    send_play_message(@id, track)
+  end
+
+  def handle_start(id, username)
+  	if User.find_by(telegram_id: id)
+  		@bot.api.send_message(chat_id: id, text: "\xF0\x9F\x91\x80")
+  	else
+  		User.create(name: username, telegram_id: id, step: 0)
+  		@bot.api.send_message(chat_id: id, text: 'You can send me youtube videos to play it on the TV.')
+  	end
+  	true
   end
 
   def error_message(id)
@@ -49,24 +70,51 @@ class MusBot
     false
   end
 
-  def play_or_queue_message(id, track)
+  def send_play_message(id, track)
   	keyboard = [[
-            Telegram::Bot::Types::InlineKeyboardButton.new(text: 'Play now', callback_data: JSON(play:track.id)),
-            Telegram::Bot::Types::InlineKeyboardButton.new(text: 'Add to queue', callback_data: JSON(queue:track.id)),
+            Telegram::Bot::Types::InlineKeyboardButton.new(text: 'Play now', callback_data: make_callback_json('play', track.id)),
+            Telegram::Bot::Types::InlineKeyboardButton.new(text: 'Add to queue', callback_data: make_callback_json('queue', track.id)),
             ]]
   	keyboard_markup = Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: keyboard)
   	@bot.api.send_message(chat_id: id, text: track.name, reply_markup: keyboard_markup)
   	true
   end
 
-  def react_to_button(id, message_data)
-  	json = JSON(message_data, symbolize_names: true)
+  def send_history_message(id)
+  	history_markup = create_history_markup
+  	@bot.api.send_message(chat_id: id, text: 'Recently played tracks:', reply_markup: history_markup)
+  end
 
-    if json[:play]
-      Launchy.open(Track.find(json[:play]).url)
-    elsif json[:queue]
-      @bot.api.send_message(chat_id: id, text: 'You send queue')
+  def update_history_message(id, message_id)
+  	history_markup = create_history_markup
+  	@bot.api.edit_message_text(chat_id: id, message_id: message_id, text: 'Recently played tracks:', reply_markup: history_markup)
+  end
+
+  def create_history_markup
+  	keyboard = PlayedTrack.order(created_at: :desc).limit(10).map.with_index do |t, i|
+  		name_in_button = t.track.name.size > 50 ? t.track.name[..50]+'..' : t.track.name
+  		button_text = "#{name_in_button} - #{t.user.name}"
+  		[Telegram::Bot::Types::InlineKeyboardButton.new(text: button_text, callback_data: make_callback_json('play', t.track.id))]
+  	end
+  	Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: keyboard)
+  end
+
+  def react_to_button(message)
+  	json = JSON(message.data, symbolize_names: true)
+
+  	case json[:type]
+		when 'play'
+    	@bot.api.send_message(chat_id: @id, text: 'запусптил видос')
+      # Launchy.open(Track.find(json[:play]).url)
+      PlayedTrack.create(track_id: json[:track_id], user_id: @user.id)
+      update_history_message(@id, @user.step)
+    when 'queue'
+      @bot.api.send_message(chat_id: @id, text: 'You send queue')
     end
+  end
+
+  def make_callback_json(type, track_id)
+  	JSON(type: type, track_id: track_id)
   end
 
 	def get_html(track_hash)

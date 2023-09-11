@@ -1,4 +1,4 @@
-source "https://rubygems.org"
+  source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 ruby "3.2.2"
@@ -77,3 +77,5 @@ gem 'pry'
 gem 'pry-byebug'
 
 gem 'launchy'
+
+gem 'figaro', git: 'https://github.com/muhenge/figaro.git', branch: 'Muhenge-Fix'

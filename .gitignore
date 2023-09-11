@@ -33,3 +33,13 @@
 
 # Ignore master key for decrypting credentials and more.
 /config/master.key
+
+# ---------------------------------
+/telegram/test.rb
+
+# Ignore migrations, but keep the directory.
+/db/migrate/*
+!/db/migrate/
+
+# Ignore application configuration
+/config/application.yml

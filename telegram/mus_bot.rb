@@ -7,13 +7,21 @@ require 'net/http'
 require 'json'
 
 class MusBot
+	EMOJI = {
+		memo: "\xF0\x9F\x93\x9D",
+		repeat: "\xF0\x9F\x94\x81",
+		flushed: "\xF0\x9F\x98\xB3",
+		eyes: "\xF0\x9F\x91\x80",
+		sweat: "\xF0\x9F\x98\xB0",
+	}.freeze
+
 	def initialize(bot)
 		@bot = bot
 	end
 
 	def init_values(message)
 		@id = message.from.id
-		@user = User.find_by(telegram_id: @id) || User.create(name: message.from.username, telegram_id: id, step: 0)
+		@user = User.find_by(telegram_id: @id) || User.create(name: message.from.username, telegram_id: @id)
 	end
 
 	def do_the_bot_thing(message)
@@ -30,10 +38,6 @@ class MusBot
     
     end
 	end
-
-  def init_user(id, username)
-  	User.find_by(telegram_id: id) || User.create(name: username, telegram_id: id, step: 0)
-  end
 
   def answer_to_user(message)
   	return handle_start(@id,  @user.name) if message.text	== '/start'
@@ -54,7 +58,7 @@ class MusBot
 
 	def handle_start(id, username)
 		if User.find_by(telegram_id: id)
-			@bot.api.send_message(chat_id: id, text: "\xF0\x9F\x91\x80")
+			@bot.api.send_message(chat_id: id, text: EMOJI[:eyes])
 		else
 			User.create(name: username, telegram_id: id, step: 0)
 			@bot.api.send_message(chat_id: id, text: 'You can send me youtube videos to play it on the TV.')
@@ -85,10 +89,10 @@ class MusBot
 		markup = create_list_markup(data_class)
 		markup.inline_keyboard.empty?
 		if data_class == PlayedTrack
-			bot_message = @bot.api.send_message(chat_id: id, text: 'Recently played tracks:', reply_markup: markup)
+			bot_message = @bot.api.send_message(chat_id: id, text: "#{EMOJI[:repeat]}Recently played tracks:", reply_markup: markup)
 			user.update(history_id: bot_message.dig('result', 'message_id'))
 		elsif data_class == QueuedTrack
-			bot_message = @bot.api.send_message(chat_id: id, text: 'Queued tracks:', reply_markup: markup)
+			bot_message = @bot.api.send_message(chat_id: id, text: "#{EMOJI[:memo]}Queued tracks:", reply_markup: markup)
 			user.update(queue_id: bot_message.dig('result', 'message_id'))
 		end
 	end
@@ -125,16 +129,16 @@ class MusBot
 			PlayedTrack.create(track_id: json[:id], user_id: @user.id)
 			QueuedTrack.destroy(json[:p_id]) if json[:origin] == 'QueuedTrack'
 	    update_list_message(@id, @user.history_id, PlayedTrack)
-	    update_list_message(@id, @user.history_id, QueuedTrack)
+	    update_list_message(@id, @user.queue_id, QueuedTrack)
 	  when 'queue'
 	    @bot.api.send_message(chat_id: @id, text: 'You\'ve added track to the queue')
 	    QueuedTrack.create(track_id: json[:id], user_id: @user.id)
-	    update_list_message(@id, @user.history_id, QueuedTrack)
+	    update_list_message(@id, @user.queue_id, QueuedTrack)
 	  end
 	end
 
 	def error_message(id)
-		@bot.api.send_message(chat_id: id, text: "Sorry, I don`t understand you \xF0\x9F\x98\xB3")
+		@bot.api.send_message(chat_id: id, text: "Sorry, I don`t understand you #{EMOJI[:flushed]}")
 		false
 	end
 
@@ -164,7 +168,7 @@ class MusBot
   	track_name = html_content[/name\s?=\s?.title.\s?content\s?=\s?"(.*?)"/, 1]
   	return track_name.force_encoding("UTF-8") if track_name
 
-  	"Sorry, I couldn't get the song title \xF0\x9F\x98\xB0"
+  	"Sorry, I couldn't get the song title #{EMOJI[:sweat]}"
 	end
 
 

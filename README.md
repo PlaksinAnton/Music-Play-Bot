@@ -11,8 +11,8 @@ This bot is made on Linux using Ruby on Rails.
 
 * **[Install Ruby (with rbenv)](https://github.com/rbenv/rbenv) Version 3.2.2**  
 
-* **Choose the folder where you want the bot and**
-	use git clone to get this repository on your computer  
+* **Clone the repository**
+	Choose the folder where you want the bot and use git clone to get this repository on your computer  
 	$```git clone https://github.com/PlaksinAnton/Music-Play-Bot.git```  
 	Get in it  
 	$```cd Music-Play-Bot```  
@@ -23,9 +23,9 @@ This bot is made on Linux using Ruby on Rails.
 * **Database creation**  
 	$```rake db:schema:load``` - also can be used to clear-up db  
 
-* **Telegram bot creation**
+* **Telegram bot creation**  
 	Go to [BotFather](https://telegram.me/BotFather) and create a new bot with ```/newbot``` command (then follow the instructions).  
-	Also it is usefull to set menu for availible commands for new bot, so not to type them mannualy later.
+	Also it is usefull to set menu for availible commands for new bot, so not to type them mannualy later.  
 	Use ```/setcommands``` to add next commands to the created bot  
 	```
 	saved - See all currently saved tracks  
@@ -35,9 +35,10 @@ This bot is made on Linux using Ruby on Rails.
 	> You can change discription, if you like 
 
 * **Configuration:**  
-	Back to your terminal  
+	Back to your terminal:  
 	$```bundle exec figaro install``` - creates config/application.yaml file (also adds it to .gitignore)  
-	$```echo "TOKEN: $YOUR_TOKEN" >> config/application.yml``` - isert token that you got from BotFather to the config file  
+	Isert token that you've got from the BotFather to the config file  
+	$```echo "TOKEN: $YOUR_TOKEN" >> config/application.yml```  
 
 * **Run the bot**  
 	To run the bot you can use next command  
@@ -61,6 +62,7 @@ This bot is made on Linux using Ruby on Rails.
 	```
 	> [!NOTE]  
 	> The user must be the same user that installed ruby  
+
 	> [!NOTE]
 	> Path to the ruby interpreter can be found by $```which ruby```. Most likely it is /home/$USER/.rbenv/shims/ruby  
 
@@ -76,6 +78,6 @@ This bot is made on Linux using Ruby on Rails.
 The bot has two commands availible
 
 * /history - shows last played videos.  
-* /saved   - shows list of saved videos. Clip removes from the saved list as soon as it selected.  
+* /saved   - shows list of saved videos. Clip get removed from the saved list as soon as it is selected.  
 
 To save or play new video just send a youtube URL to the bot and choose the option.

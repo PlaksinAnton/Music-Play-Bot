@@ -44,7 +44,7 @@ class MusBot
 
   	return handle_history(@id, @user) if message.text	== '/history'
 
-  	return handle_queue(@id, @user) if message.text	== '/queue'
+  	return handle_queue(@id, @user) if message.text	== '/saved'
 
 		url = message.text[/(https:\/\/(?:www\.)?youtu\.?be(?:\.com)?.*?)(?:\s|$)/, 1]
 		return error_message(@id) unless url
@@ -78,7 +78,7 @@ class MusBot
 	def send_play_message(id, track)
 		keyboard = [[
 	          Telegram::Bot::Types::InlineKeyboardButton.new(text: 'Play now', callback_data: make_callback_json('play', track.id)),
-	          Telegram::Bot::Types::InlineKeyboardButton.new(text: 'Add to queue', callback_data: make_callback_json('queue', track.id)),
+	          Telegram::Bot::Types::InlineKeyboardButton.new(text: 'To saved', callback_data: make_callback_json('queue', track.id)),
 	          ]]
 		keyboard_markup = Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: keyboard)
 		@bot.api.send_message(chat_id: id, text: track.name, reply_markup: keyboard_markup)
@@ -131,7 +131,7 @@ class MusBot
 	    update_list_message(@id, @user.history_id, PlayedTrack)
 	    update_list_message(@id, @user.queue_id, QueuedTrack)
 	  when 'queue'
-	    @bot.api.send_message(chat_id: @id, text: 'You\'ve added track to the queue')
+	    @bot.api.send_message(chat_id: @id, text: 'You\'ve saved this clip.')
 	    QueuedTrack.create(track_id: json[:id], user_id: @user.id)
 	    update_list_message(@id, @user.queue_id, QueuedTrack)
 	  end

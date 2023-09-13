@@ -25,14 +25,14 @@ This bot is made on Linux using Ruby on Rails.
 
 * **Telegram bot creation**  
 	Go to [BotFather](https://telegram.me/BotFather) and create a new bot with ```/newbot``` command (then follow the instructions).  
-	Also it is usefull to set menu for availible commands for new bot, so not to type them mannualy later.  
-	Use ```/setcommands``` to add next commands to the created bot  
+	Also it is useful to set menu for available commands for new bot, so not to type them manually later.  
+	Use ```/setcommands``` to add the following commands to the created bot  
 	```
 	saved - See all currently saved tracks  
 	history - See last played tracks  
 	```
 	> [!NOTE]  
-	> You can change discription, if you like 
+	> You can change description, if you like 
 
 * **Configuration:**  
 	Back to your terminal:  
@@ -41,19 +41,21 @@ This bot is made on Linux using Ruby on Rails.
 	$```echo "TOKEN: $YOUR_TOKEN" >> config/application.yml```  
 
 * **Run the bot**  
-	To run the bot you can use next command  
+	To run the bot you can use the following command  
 	$```ruby telegram/main.rb```  
-	But it's better to create systemd service if you whant it always online  
+	But it's better to create systemd service if you want it always online  
 	$```sudo touch /etc/systemd/system/music-play-bot.service```  
 	Now open music-play-bot.service file and configure it:
   	```
 	[Unit]  
-	Description=Telegram bot for lounching videos on this computer  
+	Description=Telegram bot for launching videos on this computer  
 	  
 	[Service]  
 	User=<$USER or root>  
 	WorkingDirectory=<full path to project folder>  
 	ExecStart=<path to ruby interpreter> <full path to project folder>/telegram/main.rb  
+	After=network-online.target  
+	Wants=network-online.target  
 	Restart=always  
 	RestartSec=3  
 	  
@@ -67,15 +69,14 @@ This bot is made on Linux using Ruby on Rails.
 	> Path to the ruby interpreter can be found by $```which ruby```. Most likely it is /home/$USER/.rbenv/shims/ruby  
 
 
-	Reload the service files, start your service and enable it on every reboot  
+	Reload the service files, enable your service on every reboot and start it  
 	$```sudo systemctl daemon-reload```  
-	$```sudo systemctl start music-play-bot.service```  
-	$```sudo systemctl enable music-play-bot.service```  
+	$```sudo systemctl enable music-play-bot.service --now```  
 
 * **Well done!**
 
 ## Functionality
-The bot has two commands availible
+The bot has two commands available  
 
 * /history - shows last played videos.  
 * /saved   - shows list of saved videos. Clip get removed from the saved list as soon as it is selected.  

@@ -79,3 +79,5 @@ gem 'pry-byebug'
 gem 'launchy'
 
 gem 'figaro', git: 'https://github.com/muhenge/figaro.git', branch: 'Muhenge-Fix'
+
+gem 'mini_portile2'

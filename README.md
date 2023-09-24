@@ -21,7 +21,8 @@ This bot is made on Linux using Ruby on Rails.
 	$```bundle install```  
 
 * **Database creation**  
-	$```rake db:schema:load``` - also can be used to clear-up db  
+	$```RAILS_ENV=production rake db:migrate```  
+	$```RAILS_ENV=production DISABLE_DATABASE_ENVIRONMENT_CHECK=1 rake db:reset```- use it to clear-up db  
 
 * **Telegram bot creation**  
 	Go to [BotFather](https://telegram.me/BotFather) and create a new bot with ```/newbot``` command (then follow the instructions).  
@@ -42,7 +43,7 @@ This bot is made on Linux using Ruby on Rails.
 
 * **Run the bot**  
 	To run the bot you can use the following command  
-	$```ruby telegram/main.rb```  
+	$```RAILS_ENV=production ruby telegram/main.rb```  
 	But it's better to create systemd service if you want it always online  
 	$```sudo touch /etc/systemd/system/music-play-bot.service```  
 	Now open music-play-bot.service file and configure it:
@@ -53,6 +54,7 @@ This bot is made on Linux using Ruby on Rails.
 	[Service]  
 	User=<$USER or root>  
 	WorkingDirectory=<full path to project folder>  
+	Environment="RAILS_ENV=production"  
 	ExecStart=<path to ruby interpreter> <full path to project folder>/telegram/main.rb  
 	After=network-online.target  
 	Wants=network-online.target  

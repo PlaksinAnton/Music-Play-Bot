@@ -21,11 +21,12 @@ class MusBot
 
 	def init_values(message)
 		@id = message.from.id
-		@user = User.find_by(telegram_id: @id) || User.create(name: message.from.username, telegram_id: @id)
+		@user = User.find_by(telegram_id: @id)
 	end
 
 	def do_the_bot_thing(message)
 		init_values(message)
+		binding.pry
 
     case message
     when Telegram::Bot::Types::Message
@@ -40,7 +41,7 @@ class MusBot
 	end
 
   def answer_to_user(message)
-  	return handle_start(@id,  @user.name) if message.text	== '/start'
+  	return handle_start(@id,  @user, message.from.username) if message.text	== '/start'
 
   	return handle_history(@id, @user) if message.text	== '/history'
 
@@ -56,13 +57,11 @@ class MusBot
 		send_play_message(@id, track)
 	end
 
-	def handle_start(id, username)
-		if User.find_by(telegram_id: id)
-			@bot.api.send_message(chat_id: id, text: EMOJI[:eyes])
-		else
-			User.create(name: username, telegram_id: id, step: 0)
-			@bot.api.send_message(chat_id: id, text: 'You can send me youtube videos to play it on the TV.')
-		end
+	def handle_start(id, user, username)
+		return @bot.api.send_message(chat_id: id, text: EMOJI[:eyes]) if user.present?
+
+		User.create(name: username, telegram_id: id)
+		@bot.api.send_message(chat_id: id, text: 'Hi! You can send me youtube videos to play it on the TV.')
 	end
 
 	def handle_history(id, user)
@@ -125,7 +124,7 @@ class MusBot
 		case json[:type]
 		when 'play'
 			@bot.api.send_message(chat_id: @id, text: 'Track played')
-			# Launchy.open(Track.find(json[:play]).url)
+			Launchy.open(Track.find(json[:play]).url)
 			PlayedTrack.create(track_id: json[:id], user_id: @user.id)
 			QueuedTrack.destroy(json[:p_id]) if json[:origin] == 'QueuedTrack'
 	    update_list_message(@id, @user.history_id, PlayedTrack)

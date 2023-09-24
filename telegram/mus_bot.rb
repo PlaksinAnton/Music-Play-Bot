@@ -21,12 +21,11 @@ class MusBot
 
 	def init_values(message)
 		@id = message.from.id
-		@user = User.find_by(telegram_id: @id)
+		@user = User.find_by(telegram_id: @id) || User.create(name: message.from.username, telegram_id: @id)
 	end
 
 	def do_the_bot_thing(message)
 		init_values(message)
-		binding.pry
 
     case message
     when Telegram::Bot::Types::Message
@@ -58,9 +57,6 @@ class MusBot
 	end
 
 	def handle_start(id, user, username)
-		return @bot.api.send_message(chat_id: id, text: EMOJI[:eyes]) if user.present?
-
-		User.create(name: username, telegram_id: id)
 		@bot.api.send_message(chat_id: id, text: 'Hi! You can send me youtube videos to play it on the TV.')
 	end
 
@@ -123,8 +119,8 @@ class MusBot
 
 		case json[:type]
 		when 'play'
-			@bot.api.send_message(chat_id: @id, text: 'Track played')
-			Launchy.open(Track.find(json[:play]).url)
+			@bot.api.send_message(chat_id: @id, text: 'Here you go!')
+			Launchy.open(Track.find(json[:id]).url)
 			PlayedTrack.create(track_id: json[:id], user_id: @user.id)
 			QueuedTrack.destroy(json[:p_id]) if json[:origin] == 'QueuedTrack'
 	    update_list_message(@id, @user.history_id, PlayedTrack)
